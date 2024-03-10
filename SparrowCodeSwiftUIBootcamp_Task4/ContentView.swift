@@ -9,17 +9,28 @@ import SwiftUI
 
 struct NextTrackButtonStyle: ButtonStyle {
     
-    @Binding var circleAnimation: Bool
+    @State private var circleAnimation: Bool = false
     
     func makeBody(configuration: Configuration) -> some View {
         ZStack {
             Circle()
-                .fill(Color.gray.opacity(circleAnimation ? 0.3 : 0))
-            
+                .foregroundStyle(Color.secondary.opacity(circleAnimation ? 0.3 : 0))
             configuration.label
-                .padding()
+                .padding(12)
         }
         .scaleEffect(circleAnimation ? 0.86 : 1)
+        .animation(.easeInOut(duration: 0.22), value: circleAnimation)
+        .onChange(of: configuration.isPressed) { _, newValue in
+            if newValue {
+                withAnimation(.easeInOut(duration: 0.22)) {
+                    circleAnimation = true
+                }
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                    circleAnimation = false
+                }
+            }
+        }
     }
 }
 
@@ -35,16 +46,6 @@ struct NextTrackButtonWithCircle: View {
                     performAnimation = true
                 } completion: {
                     performAnimation = false
-                }
-            }
-            
-            if !circleAnimation {
-                withAnimation(.bouncy(duration: 0.22)) {
-                    circleAnimation = true
-                } completion: {
-                    withAnimation(.bouncy(duration: 0.22)) {
-                        circleAnimation = false
-                    }
                 }
             }
         } label: {
@@ -68,15 +69,15 @@ struct NextTrackButtonWithCircle: View {
                             .renderingMode(.template)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: performAnimation ? 0.5 : width)
+                            .frame(width: performAnimation ? .zero : width)
                             .opacity(performAnimation ? .zero : 1)
                         
                     }
                     .frame(maxHeight: .infinity, alignment: .center)
                 }
         }
-        .buttonStyle(NextTrackButtonStyle(circleAnimation: $circleAnimation))
-        .frame(maxWidth: 82)
+        .buttonStyle(NextTrackButtonStyle())
+        .frame(maxWidth: 62)
     }
 }
 
